@@ -23,6 +23,7 @@ const catchError = (err, res, next) => {
 const verifyToken = async (req, res, next) => {
   try {
     const { headers } = req;
+
     if (!headers.authorization) return next();
 
     const token = headers?.authorization?.split(" ")[1];
@@ -31,13 +32,15 @@ const verifyToken = async (req, res, next) => {
     const decoded = await jwtVerify(token);
 
     if (!decoded) throw new Error("Invalid Token"); // if error decoded equals error object
-  
+
     req.loggedUser = await User.findOne({
       attributes: { exclude: ["email", "password"] },
       where: { email: decoded.email },
     });
 
     if (!req.loggedUser) next(new NotFoundError("User"));
+
+    if (req.query.id && req.loggedUser.id !== req.query.id) next(new UnauthorizedError("Unauthorized!"));
 
     headers.email = decoded.email;
     req.loggedUser.dataValues.token = token;
@@ -50,6 +53,6 @@ const verifyToken = async (req, res, next) => {
 };
 
 module.exports = {
-    verifyToken,
-    catchError
+  verifyToken,
+  catchError
 }

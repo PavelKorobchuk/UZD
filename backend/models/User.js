@@ -1,5 +1,4 @@
 "use strict";
-const e = require("express");
 const { Model, Sequelize, DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
