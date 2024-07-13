@@ -49,7 +49,6 @@ const signUp = async (req, res, next) => {
       username: newUser.username,
       email: newUser.email,
       access_token: accessToken,
-      refresh_token: refreshToken,
   });
   } catch (error) {
     next(error);
@@ -81,12 +80,11 @@ const signIn = async (req, res, next) => {
       .cookie('refreshToken', refreshTokenObj.refresh_token, { httpOnly: true, sameSite: 'strict' })
       .header('Authorization', accessToken)
       .json({
-      user: {
+        id: existentUser.id,
+        username: existentUser.username,
         email: existentUser.email,
-        username: existentUser.username
-      },
-      accessToken,
-  });
+        access_token: accessToken,
+    });
   } catch (error) {
     next(error);
   }
@@ -120,7 +118,7 @@ const refreshToken = async (req, res, next) => {
         .cookie('refreshToken', refreshToken.refresh_token, { httpOnly: true, sameSite: 'strict' })
         .header('Authorization', newAccessToken)
         .json({
-          accessToken: newAccessToken,
+          access_token: newAccessToken,
       });
   } catch (err) {
     if (err instanceof TokenExpiredError) {

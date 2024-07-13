@@ -1,28 +1,41 @@
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import * as yup from "yup";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 
-import { registerFormValidationSchema } from "../utils";
+import { registerFormValidationSchema } from "../../utils";
 
-import { WithThemeProviderLayout } from "../layouts";
+import { WithThemeProviderLayout } from "../../layouts";
+import { useLoginMutation } from "../../redux/api";
+import { log } from "console";
+import { useLocalStorage } from "../../hooks";
 
 export function Login() {
+  const navigate = useNavigate();
+  const [user, setUser] = useLocalStorage("userAuthData", null);
+  const [login, { isLoading, data, error }] = useLoginMutation();
   const formik = useFormik({
     initialValues: {
       email: "foobar@example.com",
       password: "foobar",
     },
     validationSchema: registerFormValidationSchema,
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (formValue) => {
+      try {
+        const { email, password } = formValue;
+        await login({ email, password }).unwrap();
+
+        navigate(`/user`);
+      } catch (err) {
+        console.log("error==>", err);
+      }
     },
   });
 
   return (
     <WithThemeProviderLayout>
       <>
-        <h1>Register</h1>
+        <h1>Login</h1>
         <div>
           <form onSubmit={formik.handleSubmit}>
             <TextField

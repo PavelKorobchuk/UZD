@@ -1,30 +1,53 @@
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import * as yup from "yup";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 
-import { registerFormValidationSchema } from "../utils";
+import { useRegisterMutation } from "../../redux/api";
 
-import { WithThemeProviderLayout } from "../layouts";
+import { registerFormValidationSchema } from "../../utils";
+
+import { WithThemeProviderLayout } from "../../layouts";
 
 export function Register() {
+  const navigate = useNavigate();
+  const [register, { isLoading, data, error }] = useRegisterMutation();
+
   const formik = useFormik({
     initialValues: {
+      username: "",
       email: "foobar@example.com",
       password: "foobar",
     },
     validationSchema: registerFormValidationSchema,
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (formValue) => {
+      try {
+        const { username, email, password } = formValue;
+        await register({ username, email, password }).unwrap();
+        navigate("/");
+      } catch (err) {
+        console.log("error==>", err);
+      }
     },
   });
 
   return (
     <WithThemeProviderLayout>
       <>
+        {error ? <>Error occured!</> : null}
         <h1>Register</h1>
         <div>
           <form onSubmit={formik.handleSubmit}>
+            <TextField
+              fullWidth
+              id="username"
+              name="username"
+              label="User Name"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
+            />
             <TextField
               fullWidth
               id="email"
@@ -46,8 +69,14 @@ export function Register() {
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
             />
-            <Button color="primary" variant="contained" fullWidth type="submit">
-              Submit
+            <Button
+              disabled={isLoading}
+              color="primary"
+              variant="contained"
+              fullWidth
+              type="submit"
+            >
+              Sign Up
             </Button>
           </form>
         </div>

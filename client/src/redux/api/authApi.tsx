@@ -1,7 +1,39 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { GenericResponse, IResetPasswordRequest } from "./types";
+import {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+  createApi,
+  fetchBaseQuery,
+} from "@reduxjs/toolkit/query/react";
+import { GenericResponse, IResetPasswordRequest, IAuth } from "./types";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
-// Define a service using a base URL and expected endpoints
+import { MutationLifecycleApi } from "@reduxjs/toolkit/dist/query/endpointDefinitions";
+import { authSlice } from "../slices";
+
+const onQueryStarted = async (
+  _args: any,
+  {
+    dispatch,
+    queryFulfilled,
+  }: MutationLifecycleApi<
+    any,
+    BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>,
+    GenericResponse,
+    "authApi"
+  >
+) => {
+  try {
+    const { data } = await queryFulfilled;
+    const { access_token } = data;
+    if (access_token) {
+      localStorage.setItem("userAuthData", JSON.stringify(data));
+      // dispatch(authSlice.actions.login(data));
+    }
+  } catch (error) {
+    console.warn("Something went wrong!");
+  }
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
@@ -9,27 +41,23 @@ export const authApi = createApi({
     register: builder.mutation<GenericResponse, any>({
       query(data) {
         return {
-          url: "auth/register",
+          url: "api/users/signup",
           method: "POST",
           body: data,
         };
       },
+      onQueryStarted,
     }),
-    login: builder.mutation<{ access_token: string; status: string }, any>({
-      query(data) {
+    login: builder.mutation<GenericResponse, any>({
+      query(data: { email: string; password: string }) {
         return {
-          url: "auth/login",
+          url: "api/users/login",
           method: "POST",
           body: data,
-          credentials: "include",
+          // credentials: "include",
         };
       },
-      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          // await dispatch(userApi.endpoints.getMe.initiate(null));
-        } catch (error) {}
-      },
+      onQueryStarted,
     }),
     logout: builder.mutation<void, void>({
       query() {

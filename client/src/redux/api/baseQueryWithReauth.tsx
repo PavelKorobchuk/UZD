@@ -11,11 +11,16 @@ import { Mutex } from "async-mutex";
 const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://pokeapi.co/api/v2/",
+  baseUrl: "http://localhost:3002/",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as any).auth.access_token;
-    if (token) {
-      headers.set("authentication", `Bearer ${token}`);
+    const userAuthData = localStorage.getItem("userAuthData");
+    const parsedUserAuthData = userAuthData && JSON.parse(userAuthData);
+
+    if (parsedUserAuthData?.access_token) {
+      headers.set(
+        "Authorization",
+        `Bearer ${parsedUserAuthData.access_token}`
+      );
     }
     return headers;
   },
@@ -35,15 +40,20 @@ export const baseQueryWithReauth: BaseQueryFn<
       const release = await mutex.acquire();
       try {
         const refreshResult = await baseQuery(
-          "/refreshToken",
+          "/refresh-token",
           api,
           extraOptions
         );
         if (refreshResult.data) {
-          api.dispatch(login(refreshResult.data as { access_token: string }));
+          localStorage.setItem(
+            "userAuthData",
+            JSON.stringify(refreshResult.data)
+          );
+          // api.dispatch(login(refreshResult.data as IAuth));
           // retry the initial query
           result = await baseQuery(args, api, extraOptions);
         } else {
+          localStorage.setItem("userAuthData", JSON.stringify(null));
           api.dispatch(logout());
         }
       } finally {

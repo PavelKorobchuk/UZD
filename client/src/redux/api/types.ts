@@ -1,6 +1,8 @@
 export interface GenericResponse {
-  status: string;
-  message: string;
+  username: string | null;
+  email: string | null;
+  id: string | number | null;
+  access_token: string | null;
 }
 
 export interface IResetPasswordRequest {
@@ -38,3 +40,10 @@ export interface IPostResponse {
   created_at: string;
   updated_at: string;
 }
+
+export type IAuth = {
+  access_token: null | string;
+  username: null | string;
+  email: null | string;
+  id: null | number | string;
+};

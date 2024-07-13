@@ -1,7 +1,9 @@
 import React, { ReactElement } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import { Home, Login, Register, NotFound, Root } from "../pages";
-import { ProtectedRoute } from "../components";
+import { NotFound, Root } from "../pages";
+import { Login, Register, User } from "../pages/admin";
+import { Home } from "../pages/landing";
+import { ProtectedRoute, LogOutLink } from "../components";
 
 export type RouteType = {
   index?: boolean | null | undefined;
@@ -9,33 +11,57 @@ export type RouteType = {
   to: string;
   protected: boolean;
   component?: JSX.Element | null | undefined;
+  navLinkComponent?: (props: any) => ReactElement;
+  isAdmin?: boolean | undefined;
 };
 
-export const routes: RouteType[] = [
+export const routes: Array<RouteType> = [
+  // landing page routes
   {
     index: true,
     name: "Home",
     to: "/",
-    protected: true,
+    protected: false,
     component: <Home />,
+  },
+
+  // admin panel routes
+  {
+    name: "Logout",
+    to: "/admin/logout",
+    protected: true,
+    component: null,
+    navLinkComponent: LogOutLink,
+    isAdmin: true,
+  },
+  {
+    name: "Main",
+    to: "/admin/",
+    index: true,
+    protected: true,
+    component: <User />,
+    isAdmin: true,
+  },
+  {
+    name: "User",
+    to: "/admin/user/",
+    protected: true,
+    component: <User />,
+    isAdmin: true,
   },
   {
     name: "Login",
-    to: "/login",
+    to: "/admin/login",
     protected: false,
     component: <Login />,
+    isAdmin: true,
   },
   {
     name: "Register",
-    to: "/register",
+    to: "/admin/register",
     protected: false,
     component: <Register />,
-  },
-  {
-    name: "Logout",
-    to: "/logout",
-    protected: true,
-    component: null,
+    isAdmin: true,
   },
 ];
 

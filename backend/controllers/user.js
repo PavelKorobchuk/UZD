@@ -11,7 +11,8 @@ const currentUser = async (req, res, next) => {
     loggedUser.dataValues.email = req.headers.email;
     delete req.headers.email;
 
-    res.json(loggedUser);
+    const { id, email, username } = loggedUser.dataValues
+    res.json({ id, email, username });
   } catch (error) {
     next(error);
   }
